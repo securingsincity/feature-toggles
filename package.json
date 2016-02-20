@@ -1,0 +1,29 @@
+{
+  "name": "react-feature-toggles",
+  "version": "0.0.1",
+  "description": "Implement feature toggle page in react",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "author": "Andrew Smith",
+  "readme": "README.md",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "4.2.1",
+    "react": "0.14.7",
+    "react-dom": "0.14.7"
+  },
+  "devDependencies": {
+    "chai": "3.5.0",
+    "del": "2.2.0",
+    "gulp": "3.9.0",
+    "gulp-spawn-mocha": "2.2.2",
+    "gulp-typescript": "2.11.0",
+    "gulp-util": "3.0.7",
+    "jsdom": "8.0.4",
+    "mocha": "2.4.5",
+    "react-addons-test-utils": "0.14.7",
+    "sinon": "1.17.3"
+  }
+}
