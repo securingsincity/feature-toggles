@@ -18,8 +18,9 @@ import TestUtils = require('react-addons-test-utils');
 import chai = require('chai');
 import sinon = require('sinon');
 const should = chai.should();
+const expect = chai.expect;
 
-import Toggle = require('./toggle');
+import * as Toggle from './toggle';
 
 describe('toggle', () => {
 
@@ -34,6 +35,9 @@ describe('toggle', () => {
   before(() => {
     window.localStorage = {
       getItem(key) {
+        if (_.isUndefined(this.fields[key])) {
+          return null;
+        }
         return this.fields[key];
       },
 
@@ -55,85 +59,37 @@ describe('toggle', () => {
   });
 
   xit('should exist with accessible keys', () => {
-    Toggle.should.have.all.keys(['clear', 'init', 'get', 'set', 'list', 'render', 'toggles']);
+    Toggle.should.have.all.keys(['clear', 'init', 'get', 'set', 'list', 'render']);
   });
 
   xit('should have an initializer', () => {
-    Toggle.init(initialToggles).should.not.throw(Error);
-    Toggle.toggles.should.equal(initialToggles);
+    Toggle.init.should.be.a('function');
+    Toggle.init.bind(null, initialToggles).should.not.throw(Error);
     window.FEATURE_TOGGLES.should.deep.equal(initialToggles);
   });  
 
   xit('should throw an error if initialized without a toggle list', () => {
-    Toggle.init()
+    Toggle.init.bind(null)
       .should.throw('Must provide an initial feature toggle list');
-  });
-
-  xit('should still be initialized if re-required', () => {
-    Toggle.init(initialToggles).should.not.throw(Error);
-    Toggle.toggles.should.equal(initialToggles);
-    const differentToggle = require('./toggle');
-    differentToggle.toggles.should.deep.equal(initialToggles);
-  });
-
-  xit('should have a clearer', () => {
-    Toggle.init();
-    Toggle.toggles.should.equal(initialToggles);
-    Toggle.clear();
-    Toggle.toggles.should.be.empty();
   });
 
   xit('should have a getter', () => {
     Toggle.init(initialToggles);
-    Toggle.get('myToggle1').should.be(true);
+    Toggle.get('myToggle1').should.equal(true);
   });
 
   xit('should throw if getting a non-existent toggle', () => {
     Toggle.init(initialToggles);
-    Toggle.get('notExist')
+    Toggle.get.bind(null, 'notExist')
       .should.throw('Cannot get non-existent toggle "notExist".');
   });
 
   xit('should have a setter that uses localStorage', () => {
     Toggle.init(initialToggles);
-    Toggle.set('myToggle2', true).should.be(undefined);
-    window.localStorage.getItem('feature-myToggle2').should.be(undefined);
-    Toggle.get('myToggle2').should.be(true);
-    window.localStorage.getItem('feature-myToggle2').should.be('true');
-  });
-
-  xit('should throw if setting a non-existent toggle', () => {
-    Toggle.init(initialToggles);
-    Toggle.set('notExist', true)
-      .should.throw('Cannot set non-existent toggle "notExist".');
-  });
-
-  xit('should throw if no toggle name provided', () => {
-    Toggle.init(initialToggles);
-    Toggle.set()
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
-  });
-
-  xit('should throw if no toggle value provided', () => {
-    Toggle.init(initialToggles);
-    Toggle.set('myToggle2')
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
-  });
-
-  xit('should throw if toggle value provided is not a boolean', () => {
-    Toggle.init(initialToggles);
-    Toggle.set('myToggle2', 'f')
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
-    Toggle.set('myToggle2', 2)
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
-    Toggle.set('myToggle2', 2.2)
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
-    Toggle.set('myToggle2', null)
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
-    Toggle.set('myToggle2', undefined)
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
-    Toggle.set('myToggle2', () => {return true;})
-      .should.throw('Toggle.set() requires a toggle name and boolean value');
+    expect(window.localStorage.getItem('feature-myToggle2')).to.equal(null);
+    Toggle.set('myToggle2', true);
+    Toggle.get('myToggle2').should.equal(true);
+    window.localStorage.getItem('feature-myToggle2').should.equal('true');
   });
 
   xit('should have a lister', () => {
@@ -142,8 +98,54 @@ describe('toggle', () => {
     let testToggles = _.clone(initialToggles);
     testToggles['myToggle3'] = false;
     Toggle.set('myToggle3', false);
-    Toggle.toggles.should.deep.equal(testToggles);
     Toggle.list().should.deep.equal(testToggles);
+  });
+
+  xit('should have a clearer', () => {
+    Toggle.init(initialToggles);
+    Toggle.list().should.deep.equal(initialToggles);
+    Toggle.clear();
+    Toggle.list.bind(null).should.throw;
+  });
+
+  xit('should still be initialized if re-required', () => {
+    Toggle.init.bind(null, initialToggles).should.not.throw(Error);
+    const differentToggle = require('./toggle');
+    differentToggle.list().should.deep.equal(initialToggles);
+  });
+
+  xit('should throw if setting a non-existent toggle', () => {
+    Toggle.init(initialToggles);
+    Toggle.set.bind(null, 'notExist', true)
+      .should.throw('Cannot set non-existent toggle "notExist".');
+  });
+
+  xit('should throw if no toggle name provided', () => {
+    Toggle.init(initialToggles);
+    Toggle.set.bind(null)
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
+  });
+
+  xit('should throw if no toggle value provided', () => {
+    Toggle.init(initialToggles);
+    Toggle.set.bind(null, 'myToggle2')
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
+  });
+
+  xit('should throw if toggle value provided is not a boolean', () => {
+    Toggle.init(initialToggles);
+    Toggle.set.bind(null, 'myToggle2', 'f')
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
+    Toggle.set.bind(null, 'myToggle2', 2)
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
+    Toggle.set.bind(null, 'myToggle2', 2.2)
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
+    Toggle.set.bind(null, 'myToggle2', null)
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
+    Toggle.set.bind(null, 'myToggle2', undefined)
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
+    Toggle.set.bind(null, 'myToggle2', () => {return true;})
+      .should.throw('Toggle.set() requires a toggle name and boolean value.');
   });
 
   xit('should render a toggle switcher', () => {
@@ -238,7 +240,7 @@ describe('toggle', () => {
     toggleButtons4[0].checked.should.equal(false);
     toggleButtons4[1].checked.should.equal(true);
 
-    Toggle.toggles.should.deep.equal({
+    Toggle.list().should.deep.equal({
       "myToggle1": false,
       "myToggle2": true,
       "myToggle3": true,
@@ -248,13 +250,13 @@ describe('toggle', () => {
   });
 
   xit('should throw if not initialized', () => {
-    Toggle.get('something')
+    Toggle.get.bind(null, 'something')
       .should.throw('Toggles must be initialized via Toggle.init(initialToggles).');
-    Toggle.set('something', true)
+    Toggle.set.bind(null, 'something', true)
       .should.throw('Toggles must be initialized via Toggle.init(initialToggles).');
-    Toggle.list()
+    Toggle.list.bind(null) 
       .should.throw('Toggles must be initialized via Toggle.init(initialToggles).');
-    Toggle.render(document.getElementById('app'))
+    Toggle.render.bind(null, document.getElementById('app'))
       .should.throw('Toggles must be initialized via Toggle.init(initialToggles).');
   });
 });
